@@ -21,7 +21,7 @@ def test_dashboard_renders(tmp_path: Path) -> None:
     client = app.test_client()
     r = client.get("/")
     assert r.status_code == 200
-    assert b"Trade log" in r.data
+    assert b"Polymarket Bot Dashboard" in r.data
 
     j = client.get("/api/trades").get_json()
     assert j is not None

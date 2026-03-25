@@ -1,0 +1,26 @@
+.shell { max-width: 1280px; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+.topbar { display:flex; justify-content:space-between; gap:1rem; border-bottom:1px solid var(--border); padding-bottom:1.5rem; margin-bottom:2rem; }
+.eyebrow-row { display:flex; gap:0.5rem; align-items:center; margin-bottom:0.5rem; }
+.status-pill { font-size:0.7rem; padding:0.2rem 0.5rem; border-radius:999px; border:1px solid var(--border); }
+.status-pill.live { color:var(--positive); border-color:var(--positive); }
+.status-pill.idle { color:var(--muted); }
+.hero-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:1rem; margin-bottom:2rem; }
+.hero-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.2rem; }
+.hero-card-primary { border-color:var(--accent); box-shadow:0 0 20px rgba(232,168,56,0.1); }
+.metric-label { font-size:0.7rem; color:var(--muted); text-transform:uppercase; }
+.metric-value { font-size:1.5rem; font-weight:600; }
+.metric-foot { font-size:0.75rem; color:var(--muted); }
+.main-grid { display:grid; grid-template-columns: 2fr 1fr; gap:1rem; margin-bottom:2rem; }
+.panel { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1rem; }
+.panel-header { display:flex; justify-content:space-between; margin-bottom:1rem; }
+.position-grid { display:grid; grid-template-columns: repeat(2,1fr); gap:0.75rem; }
+.position-item { background:rgba(255,255,255,0.02); padding:0.5rem; border-radius:6px; }
+.position-label { font-size:0.7rem; color:var(--muted); }
+.position-value { font-size:0.9rem; }
+.health-row { display:flex; justify-content:space-between; margin-bottom:0.5rem; }
+.badge { padding:0.2rem 0.5rem; border-radius:4px; border:1px solid var(--border); }
+.truncate { max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.table-section { margin-bottom:2rem; }
+.section-head { display:flex; justify-content:space-between; margin-bottom:0.5rem; }
+.compact table { font-size:0.75rem; }
+.empty-panel { padding:1rem; color:var(--muted); }

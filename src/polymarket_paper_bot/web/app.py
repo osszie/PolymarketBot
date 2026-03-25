@@ -46,7 +46,7 @@ def create_app(config: AppConfig | None = None) -> Flask:
         state_raw = load_bot_state_json(state_path)
         summary = summarize_from_state(state_raw)
         return render_template(
-            "dashboard.html",
+            "dashboard_v2.html",
             config=config,
             trades=rows,
             summary=summary,
