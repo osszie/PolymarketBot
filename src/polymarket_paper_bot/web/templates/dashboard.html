@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Paper trades — Polymarket bot</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;1,9..40,400&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div>
+          <span class="tag">Paper only</span>
+          <h1>Trade log</h1>
+          <p class="meta">Reads <code class="mono">{{ trades_path }}</code></p>
+        </div>
+        <div class="actions">
+          <a class="btn" href="{{ url_for('index') }}">Refresh</a>
+          <span class="meta">Auto-refresh: 30s</span>
+        </div>
+      </header>
+
+      {% if summary.has_state %}
+      <div class="grid">
+        <div class="card">
+          <label>Cash</label>
+          <div class="value">${{ "%.2f"|format(summary.cash_usd|default(0)|float) }}</div>
+        </div>
+        <div class="card">
+          <label>Realized PnL</label>
+          <div class="value {% if summary.realized_pnl_usd|default(0)|float < -0.0001 %}neg{% elif summary.realized_pnl_usd|default(0)|float > 0.0001 %}pos{% endif %}">
+            ${{ "%.2f"|format(summary.realized_pnl_usd|default(0)|float) }}
+          </div>
+        </div>
+        <div class="card">
+          <label>Unrealized PnL</label>
+          <div class="value {% if summary.unrealized_pnl_usd|default(0)|float < -0.0001 %}neg{% elif summary.unrealized_pnl_usd|default(0)|float > 0.0001 %}pos{% endif %}">
+            ${{ "%.2f"|format(summary.unrealized_pnl_usd|default(0)|float) }}
+          </div>
+        </div>
+        <div class="card">
+          <label>Trades (all time)</label>
+          <div class="value">{{ summary.trades_count|default(0) }}</div>
+        </div>
+        <div class="card">
+          <label>W / L</label>
+          <div class="value">{{ summary.wins|default(0) }} / {{ summary.losses|default(0) }}</div>
+        </div>
+        <div class="card">
+          <label>Day realized</label>
+          <div class="value {% if summary.day_realized_pnl_usd|default(0)|float < -0.0001 %}neg{% elif summary.day_realized_pnl_usd|default(0)|float > 0.0001 %}pos{% endif %}">
+            ${{ "%.2f"|format(summary.day_realized_pnl_usd|default(0)|float) }}
+          </div>
+        </div>
+      </div>
+
+      {% if summary.open_position %}
+      <div class="position-box">
+        <strong>Open position</strong> (from state file)
+        <pre>{{ summary.open_position | tojson(indent=2) }}</pre>
+      </div>
+      {% endif %}
+      {% else %}
+      <div class="grid">
+        <div class="card">
+          <label>State</label>
+          <div class="value" style="font-size: 0.95rem">No <code class="mono">bot_state.json</code> yet</div>
+        </div>
+      </div>
+      <p class="meta">Run the bot in <code>paper</code> mode once to create state under <code class="mono">{{ state_path }}</code>.</p>
+      {% endif %}
+
+      <h2 class="section-title">All trades (newest first)</h2>
+
+      {% if trades %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Action</th>
+              <th>Side</th>
+              <th>Price</th>
+              <th>Size</th>
+              <th>Notional</th>
+              <th>Realized PnL</th>
+              <th>Reason</th>
+              <th>Market</th>
+              <th>Trade ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in trades %}
+            <tr>
+              <td class="mono">{{ t.timestamp }}</td>
+              <td>{{ t.action }}</td>
+              <td>{{ t.side }}</td>
+              <td class="mono">{{ t.price }}</td>
+              <td class="mono">{{ t.size }}</td>
+              <td class="mono">{{ t.notional }}</td>
+              <td class="mono">{% if t.realized_pnl %}{{ t.realized_pnl }}{% else %}—{% endif %}</td>
+              <td>{{ t.reason }}</td>
+              <td class="mono">{{ t.market_id }}</td>
+              <td class="mono">{{ t.trade_id }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="table-wrap">
+        <div class="empty">No trades yet. When the paper bot executes, rows appear here.</div>
+      </div>
+      {% endif %}
+
+      <footer>
+        <p>
+          JSON API: <a href="{{ url_for('api_trades') }}">/api/trades</a> ·
+          <a href="{{ url_for('api_state') }}">/api/state</a>
+        </p>
+        <p>State file: <code class="mono">{{ state_path }}</code></p>
+      </footer>
+    </div>
+    <script>
+      setTimeout(function () {
+        location.reload();
+      }, 30000);
+    </script>
+  </body>
+</html>

@@ -18,9 +18,9 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(description="Polymarket public-data paper trading bot")
     p.add_argument(
         "--mode",
-        choices=["paper", "scan", "replay", "snapshot"],
+        choices=["paper", "scan", "replay", "snapshot", "web"],
         default="paper",
-        help="paper loop, one-shot scan, snapshot replay, or capture JSON snapshot",
+        help="paper loop, scan, snapshot, replay, or local web dashboard (trades CSV + state)",
     )
     p.add_argument(
         "--iterations",
@@ -33,6 +33,18 @@ def build_parser() -> argparse.ArgumentParser:
         type=str,
         default=str(Path("data") / "snapshot.json"),
         help="snapshot path for replay/capture modes",
+    )
+    p.add_argument(
+        "--host",
+        type=str,
+        default="127.0.0.1",
+        help="bind address for --mode web (default: 127.0.0.1)",
+    )
+    p.add_argument(
+        "--port",
+        type=int,
+        default=5050,
+        help="port for --mode web (default: 5050)",
     )
     return p
 
@@ -53,6 +65,13 @@ def main(argv: list[str] | None = None) -> int:
     config.ensure_runtime_dirs()
     log = setup_logging(config.log_level)
     log.info("starting | config=%s", config_to_log_dict(config))
+
+    if args.mode == "web":
+        from polymarket_paper_bot.web.app import run_server
+
+        log.info("web dashboard | http://%s:%s/", args.host, args.port)
+        run_server(config, host=str(args.host), port=int(args.port), debug=False)
+        return 0
 
     bot = TradingBot(config)
     snap_path = Path(args.snapshot_file)

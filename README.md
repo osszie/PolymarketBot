@@ -22,11 +22,12 @@ This project is designed as a **research and simulation** sandbox: production-st
 - **Risk** checks (notional caps, cash, optional daily loss cap, kill switch).
 - **CSV** trade log + **JSON** state snapshots under `DATA_DIR`.
 - **CLI modes**: `paper` loop, `scan`, `snapshot` capture, `replay` from JSON snapshots.
+- **Local web dashboard** (`--mode web`) to view `trades.csv` and `bot_state.json` in the browser (read-only).
 
 ## Requirements
 
 - Python **3.11+** (tested on 3.11+; 3.13 works locally)
-- Network access for live `scan` / `paper` / `snapshot` modes
+- Network access for live `scan` / `paper` / `snapshot` modes (not required for `--mode web`)
 
 ## Quickstart
 
@@ -55,7 +56,20 @@ python -m polymarket_paper_bot --mode paper --iterations 20
 python -m polymarket_paper_bot --mode scan --iterations 10
 python -m polymarket_paper_bot --mode snapshot --snapshot-file ./data/snapshot.json
 python -m polymarket_paper_bot --mode replay --snapshot-file ./data/snapshot.json --iterations 50
+python -m polymarket_paper_bot --mode web --host 127.0.0.1 --port 5050
+make web
 ```
+
+### Web dashboard (local)
+
+Starts a small **Flask** UI (default `http://127.0.0.1:5050`) that reads:
+
+- `DATA_DIR/trades.csv` — all simulated fills (newest first)
+- `DATA_DIR/bot_state.json` — cash, PnL, open position (if any)
+
+JSON endpoints: `/api/trades`, `/api/state`. The page auto-refreshes every 30 seconds.
+
+Bind address is **`127.0.0.1` by default** (local only). Only use `--host 0.0.0.0` on a trusted network if you need access from another machine.
 
 ## Configuration
 
@@ -91,6 +105,7 @@ polymarket-paper-bot/
     risk/              # risk checks
     storage/           # CSV + JSON state
     runner/            # orchestration + snapshot helpers
+    web/               # Flask dashboard (trades + state)
     main.py            # CLI
   tests/
 ```

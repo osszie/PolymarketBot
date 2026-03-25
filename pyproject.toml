@@ -13,6 +13,7 @@ authors = [{ name = "Polymarket Paper Bot Contributors" }]
 dependencies = [
   "httpx>=0.27,<0.29",
   "python-dotenv>=1.0,<2",
+  "flask>=3,<4",
 ]
 
 [project.optional-dependencies]
@@ -23,6 +24,12 @@ polymarket-paper-bot = "polymarket_paper_bot.main:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+polymarket_paper_bot = [
+  "web/templates/*.html",
+  "web/templates/static/*.css",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
