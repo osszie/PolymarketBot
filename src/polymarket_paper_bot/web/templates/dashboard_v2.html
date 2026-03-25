@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Polymarket Bot Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;1,9..40,400&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard_v2.css') }}" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow-row">
+            <span class="tag">Paper only</span>
+            <span class="status-pill {% if summary.open_position %}live{% else %}idle{% endif %}">
+              {% if summary.open_position %}In position{% else %}Flat{% endif %}
+            </span>
+          </div>
+          <h1>Polymarket Bot Dashboard</h1>
+          <p class="meta">Read-only view of paper trading state and execution history.</p>
+        </div>
+        <div class="topbar-actions">
+          <div class="meta-block">
+            <span class="meta-label">Source</span>
+            <code class="mono">{{ trades_path }}</code>
+          </div>
+          <a class="btn" href="{{ url_for('index') }}">Refresh</a>
+        </div>
+      </header>
+
+      {% if summary.has_state %}
+      <section class="hero-grid">
+        <article class="hero-card hero-card-primary">
+          <span class="metric-label">Cash</span>
+          <div class="metric-value">${{ "%.2f"|format(summary.cash_usd|default(0)|float) }}</div>
+          <p class="metric-foot">Available simulated capital</p>
+        </article>
+        <article class="hero-card">
+          <span class="metric-label">Realized PnL</span>
+          <div class="metric-value {% if summary.realized_pnl_usd|default(0)|float < 0 %}neg{% elif summary.realized_pnl_usd|default(0)|float > 0 %}pos{% endif %}">
+            ${{ "%.2f"|format(summary.realized_pnl_usd|default(0)|float) }}
+          </div>
+          <p class="metric-foot">Closed trade performance</p>
+        </article>
+        <article class="hero-card">
+          <span class="metric-label">Unrealized PnL</span>
+          <div class="metric-value {% if summary.unrealized_pnl_usd|default(0)|float < 0 %}neg{% elif summary.unrealized_pnl_usd|default(0)|float > 0 %}pos{% endif %}">
+            ${{ "%.2f"|format(summary.unrealized_pnl_usd|default(0)|float) }}
+          </div>
+          <p class="metric-foot">Mark-to-market on open exposure</p>
+        </article>
+        <article class="hero-card">
+          <span class="metric-label">Trades</span>
+          <div class="metric-value">{{ summary.trades_count|default(0) }}</div>
+          <p class="metric-foot">All fills recorded</p>
+        </article>
+        <article class="hero-card">
+          <span class="metric-label">Win / Loss</span>
+          <div class="metric-value">{{ summary.wins|default(0) }} / {{ summary.losses|default(0) }}</div>
+          <p class="metric-foot">Closed outcomes</p>
+        </article>
+        <article class="hero-card">
+          <span class="metric-label">Day realized</span>
+          <div class="metric-value {% if summary.day_realized_pnl_usd|default(0)|float < 0 %}neg{% elif summary.day_realized_pnl_usd|default(0)|float > 0 %}pos{% endif %}">
+            ${{ "%.2f"|format(summary.day_realized_pnl_usd|default(0)|float) }}
+          </div>
+          <p class="metric-foot">Today’s closed PnL</p>
+        </article>
+      </section>
+
+      <section class="main-grid">
+        <article class="panel panel-position">
+          <div class="panel-header">
+            <h2>Open position</h2>
+            <span class="panel-subtitle">Structured state view</span>
+          </div>
+          {% if summary.open_position %}
+          <div class="position-grid">
+            {% for key, value in summary.open_position.items() %}
+            <div class="position-item">
+              <span class="position-label">{{ key.replace('_', ' ') }}</span>
+              <span class="position-value">{{ value }}</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="empty-panel">No open position. The bot is currently flat.</div>
+          {% endif %}
+        </article>
+
+        <article class="panel panel-health">
+          <div class="panel-header">
+            <h2>Bot health</h2>
+            <span class="panel-subtitle">At-a-glance status</span>
+          </div>
+          <div class="health-list">
+            <div class="health-row">
+              <span>Mode</span>
+              <strong>Paper only</strong>
+            </div>
+            <div class="health-row">
+              <span>Auto refresh</span>
+              <strong>30s</strong>
+            </div>
+            <div class="health-row">
+              <span>Trade source</span>
+              <strong>CSV log</strong>
+            </div>
+            <div class="health-row">
+              <span>State source</span>
+              <strong>JSON state</strong>
+            </div>
+          </div>
+          <div class="api-links">
+            <a href="{{ url_for('api_trades') }}">/api/trades</a>
+            <a href="{{ url_for('api_state') }}">/api/state</a>
+          </div>
+        </article>
+      </section>
+      {% else %}
+      <section class="hero-grid single-state">
+        <article class="hero-card hero-card-primary">
+          <span class="metric-label">State</span>
+          <div class="metric-value">No bot state yet</div>
+          <p class="metric-foot">Run the bot in <code>paper</code> mode to generate state under <code class="mono">{{ state_path }}</code>.</p>
+        </article>
+      </section>
+      {% endif %}
+
+      <section class="table-section">
+        <div class="section-head">
+          <h2>Recent trades</h2>
+          <span class="panel-subtitle">Latest 10 fills</span>
+        </div>
+        {% if trades %}
+        <div class="table-wrap compact">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Action</th>
+                <th>Side</th>
+                <th>Price</th>
+                <th>Size</th>
+                <th>PnL</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for t in trades[:10] %}
+              <tr>
+                <td class="mono">{{ t.timestamp }}</td>
+                <td><span class="badge">{{ t.action }}</span></td>
+                <td>{{ t.side }}</td>
+                <td class="mono">{{ t.price }}</td>
+                <td class="mono">{{ t.size }}</td>
+                <td class="mono {% if t.realized_pnl and t.realized_pnl|float < 0 %}neg{% elif t.realized_pnl and t.realized_pnl|float > 0 %}pos{% endif %}">{{ t.realized_pnl or '—' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-panel">No trades yet. Recent fills will appear here first.</div>
+        {% endif %}
+      </section>
+
+      <section class="table-section">
+        <div class="section-head">
+          <h2>Full trade history</h2>
+          <span class="panel-subtitle">Newest first</span>
+        </div>
+        {% if trades %}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Action</th>
+                <th>Side</th>
+                <th>Price</th>
+                <th>Size</th>
+                <th>Notional</th>
+                <th>Realized PnL</th>
+                <th>Reason</th>
+                <th>Market</th>
+                <th>Trade ID</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for t in trades %}
+              <tr>
+                <td class="mono">{{ t.timestamp }}</td>
+                <td><span class="badge">{{ t.action }}</span></td>
+                <td>{{ t.side }}</td>
+                <td class="mono">{{ t.price }}</td>
+                <td class="mono">{{ t.size }}</td>
+                <td class="mono">{{ t.notional }}</td>
+                <td class="mono {% if t.realized_pnl and t.realized_pnl|float < 0 %}neg{% elif t.realized_pnl and t.realized_pnl|float > 0 %}pos{% endif %}">{{ t.realized_pnl or '—' }}</td>
+                <td>{{ t.reason }}</td>
+                <td class="mono truncate">{{ t.market_id }}</td>
+                <td class="mono truncate">{{ t.trade_id }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-panel">No trade history yet.</div>
+        {% endif %}
+      </section>
+    </div>
+    <script>
+      setTimeout(function () {
+        location.reload();
+      }, 30000);
+    </script>
+  </body>
+</html>
